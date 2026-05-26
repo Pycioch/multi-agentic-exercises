@@ -9,11 +9,12 @@ The simplest possible LangChain showcase in this directory:
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 
 load_dotenv()
 
 
 if __name__ == "__main__":
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-4", temperature=0)
     response = llm.invoke("Say hello in one short sentence for a workshop demo.")
     print(response.content)
