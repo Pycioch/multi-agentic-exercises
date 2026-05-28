@@ -1,0 +1,286 @@
+[
+  {
+    "id": "L1-001",
+    "tier": "l1",
+    "question": "Who was on-call for DC-A at 2025-03-15 14:30 UTC?",
+    "answer": "Alice Johnson",
+    "source_files": [
+      "oncall_roster.csv"
+    ]
+  },
+  {
+    "id": "L1-002",
+    "tier": "l1",
+    "question": "What is the commit hash of the deployment to DC-A api-gateway at 2025-03-15 14:22 UTC?",
+    "answer": "d4f8a2b1c9e3",
+    "source_files": [
+      "deployments.csv"
+    ]
+  },
+  {
+    "id": "L1-003",
+    "tier": "l1",
+    "question": "What was the first P0 incident ID opened during the 2025-03-15 DC-A outage?",
+    "answer": "INC-4821",
+    "source_files": [
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L1-004",
+    "tier": "l1",
+    "question": "How many P0 incidents occurred in DC-A in Q1 2025 (January–March)?",
+    "answer": 7,
+    "source_files": [
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L1-005",
+    "tier": "l1",
+    "question": "What was the CPU% on dc-a-host-02 at 2025-03-15 14:40 UTC?",
+    "answer": 96.4,
+    "source_files": [
+      "metrics_cpu.csv"
+    ]
+  },
+  {
+    "id": "L1-006",
+    "tier": "l1",
+    "question": "Which runbook handles DC-B payment-service memory exhaustion?",
+    "answer": "RB-payment-002",
+    "source_files": [
+      "runbooks.csv"
+    ]
+  },
+  {
+    "id": "L1-007",
+    "tier": "l1",
+    "question": "What is the commit hash of the rollback deployed to DC-A on 2025-03-15 15:52 UTC?",
+    "answer": "a9c7b3d2f1e8",
+    "source_files": [
+      "deployments.csv"
+    ]
+  },
+  {
+    "id": "L1-008",
+    "tier": "l1",
+    "question": "Who was on-call for DC-C at 2024-11-20 03:00 UTC?",
+    "answer": "Carlos Mendez",
+    "source_files": [
+      "oncall_roster.csv"
+    ]
+  },
+  {
+    "id": "L1-009",
+    "tier": "l1",
+    "question": "Which service had the most P0 incidents across all datacenters over the full 18-month period?",
+    "answer": "payment-service",
+    "source_files": [
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L1-010",
+    "tier": "l1",
+    "question": "How many deployments were made to DC-B payment-service in September 2024?",
+    "answer": 3,
+    "source_files": [
+      "deployments.csv"
+    ]
+  },
+  {
+    "id": "L2-001",
+    "tier": "l2",
+    "question": "What was the total number of P0 incidents across all datacenters in 2024?",
+    "answer": 28,
+    "source_files": [
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L2-002",
+    "tier": "l2",
+    "question": "What was the mean MTTR (in minutes) for P0 incidents in DC-A over the full dataset?",
+    "answer": 94,
+    "source_files": [
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L2-003",
+    "tier": "l2",
+    "question": "Which datacenter had the fewest P0 incidents in H2 2024, and how many?",
+    "answer": "DC-B, 5",
+    "source_files": [
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L2-004",
+    "tier": "l2",
+    "question": "How many deployments occurred across all datacenters and services in March 2025?",
+    "answer": 14,
+    "source_files": [
+      "deployments.csv"
+    ]
+  },
+  {
+    "id": "L2-005",
+    "tier": "l2",
+    "question": "What was the average CPU% across all DC-A api-gateway hosts during 2025-03-15 14:25–15:10 UTC?",
+    "answer": 87.4,
+    "source_files": [
+      "metrics_cpu.csv"
+    ]
+  },
+  {
+    "id": "L2-006",
+    "tier": "l2",
+    "question": "How many P0 incidents did auth-service experience in all of 2024?",
+    "answer": 0,
+    "source_files": [
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L2-007",
+    "tier": "l2",
+    "question": "How many P1 incidents were opened within 30 minutes of any deployment, across the full dataset?",
+    "answer": 12,
+    "source_files": [
+      "incidents.csv",
+      "deployments.csv"
+    ]
+  },
+  {
+    "id": "L2-008",
+    "tier": "l2",
+    "question": "What was the mean memory% on DC-B payment-service hosts in the 4 hours following deploy d-2024090301?",
+    "answer": 79.3,
+    "source_files": [
+      "metrics_mem.csv",
+      "deployments.csv"
+    ]
+  },
+  {
+    "id": "L2-009",
+    "tier": "l2",
+    "question": "How many 5-minute intervals showed network throughput above the 95th percentile on DC-C data-pipeline hosts in November 2024?",
+    "answer": 8,
+    "source_files": [
+      "metrics_net.csv"
+    ]
+  },
+  {
+    "id": "L2-010",
+    "tier": "l2",
+    "question": "How many incidents (any severity) occurred in the 24 hours before deploy d-2025031501?",
+    "answer": 0,
+    "source_files": [
+      "incidents.csv",
+      "deployments.csv"
+    ]
+  },
+  {
+    "id": "L3-001",
+    "tier": "l3",
+    "question": "Did deploy d-2025031501 on 2025-03-15 cause P0 incidents in DC-A? How many, within what timeframe, and what are their IDs?",
+    "answer": "Yes. Deploy d-2025031501 (2025-03-15 14:22 UTC) directly caused 4 P0 incidents (INC-4821, INC-4822, INC-4823, INC-4824) in DC-A api-gateway, all opened within 13 minutes of the deployment.\n",
+    "source_files": [
+      "deployments.csv",
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L3-002",
+    "tier": "l3",
+    "question": "Is there a temporal correlation between the CPU spike on DC-A api-gateway hosts and the P0 incident cluster on 2025-03-15?",
+    "answer": "Yes. CPU on dc-a-host-01 through dc-a-host-04 began rising at 14:25 and peaked at 14:38 (avg 87.4%). All 4 P0 incidents were opened between 14:28 and 14:35 — during the rising phase. Pearson correlation between avg CPU% and active P0 count in 5-min buckets during 14:25–15:10 is > 0.85.\n",
+    "source_files": [
+      "metrics_cpu.csv",
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L3-003",
+    "tier": "l3",
+    "question": "Did the rollback deploy d-2025031502 at 15:52 UTC cause CPU to recover on DC-A api-gateway hosts?",
+    "answer": "Yes. Within 8 minutes of the rollback deploy at 15:52, CPU on all 4 affected DC-A api-gateway hosts returned below 60%.\n",
+    "source_files": [
+      "deployments.csv",
+      "metrics_cpu.csv"
+    ]
+  },
+  {
+    "id": "L3-004",
+    "tier": "l3",
+    "question": "How did deploy d-2024090301 affect DC-B payment-service memory over the 4 hours following deployment?",
+    "answer": "Memory on dc-b-host-06 and dc-b-host-07 increased monotonically at approximately 7.5%/hour from a 55% baseline, reaching ~85% after 4 hours. Mean memory over the 4-hour window was 79.3%.\n",
+    "source_files": [
+      "deployments.csv",
+      "metrics_mem.csv"
+    ]
+  },
+  {
+    "id": "L3-005",
+    "tier": "l3",
+    "question": "Was the DC-C data-pipeline network storm on 2024-11-20 preceded by a deployment?",
+    "answer": "No. There were no deployments to DC-C data-pipeline in the 6 hours preceding the network storm that started at 03:00 UTC. The cause was a batch job misconfiguration, not a code deploy.\n",
+    "source_files": [
+      "deployments.csv",
+      "metrics_net.csv",
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L3-006",
+    "tier": "l3",
+    "question": "Who handled the 2025-03-15 P0 incidents in DC-A, and when were they all resolved?",
+    "answer": "Alice Johnson (on-call for DC-A, shift 08:00–20:00 UTC) was assigned all 4 P0 incidents (INC-4821 through INC-4824). All were resolved at 16:45 UTC, giving an MTTR range of 130–137 minutes.\n",
+    "source_files": [
+      "incidents.csv",
+      "oncall_roster.csv"
+    ]
+  },
+  {
+    "id": "L3-007",
+    "tier": "l3",
+    "question": "Across the full 18-month dataset, which deployments caused a P0 incident within 15 minutes of being deployed?",
+    "answer": "Three deployments: d-2025031501 (2025-03-15 14:22, P0 at 14:28), d-2024061203 (2024-06-12 10:05, P0 at 10:12), d-2025010802 (2025-01-08 09:30, P0 at 09:38).\n",
+    "source_files": [
+      "deployments.csv",
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L3-008",
+    "tier": "l3",
+    "question": "Did cache-service experience any incidents that were temporally correlated with deployments in DC-A over the 18-month period?",
+    "answer": "No. cache-service in DC-A had no incidents opened within 30 minutes of any deployment throughout the full dataset.\n",
+    "source_files": [
+      "deployments.csv",
+      "incidents.csv"
+    ]
+  },
+  {
+    "id": "L3-009",
+    "tier": "l3",
+    "question": "After runbook RB-payment-002 was applied to the 2024-09-03 DC-B payment-service incidents, how quickly did memory recover?",
+    "answer": "Memory on the affected hosts (dc-b-host-06, dc-b-host-07) returned below 70% within 45 minutes of the incident being resolved at 13:30 UTC via RB-payment-002.\n",
+    "source_files": [
+      "incidents.csv",
+      "metrics_mem.csv",
+      "runbooks.csv"
+    ]
+  },
+  {
+    "id": "L3-010",
+    "tier": "l3",
+    "question": "On 2025-03-15, did all four DC-A api-gateway hosts show elevated CPU simultaneously, or was it staggered?",
+    "answer": "Simultaneous. All four hosts (dc-a-host-01 through dc-a-host-04) exceeded 80% CPU by 14:30 UTC — within 5 minutes of the first spike at 14:25 — confirming a shared-cause outage rather than a cascading failure.\n",
+    "source_files": [
+      "metrics_cpu.csv"
+    ]
+  }
+]

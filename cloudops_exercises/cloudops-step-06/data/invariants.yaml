@@ -1,0 +1,490 @@
+# Cloud-Ops synthetic dataset — ground-truth invariants
+# Lock this file before running generate_data.py.
+# Every planted fact in the CSVs must trace to an entry here.
+
+meta:
+  dataset_range:
+    start: "2024-01-01"
+    end:   "2025-06-30"
+  seed: 42
+  datacenters: [DC-A, DC-B, DC-C]
+  services:
+    - api-gateway
+    - auth-service
+    - payment-service
+    - data-pipeline
+    - cache-service
+    - search-service
+  hosts_per_dc: 10
+  # host-to-service mapping (host index 1-10 within each DC)
+  host_service_map:
+    1: api-gateway
+    2: api-gateway
+    3: api-gateway
+    4: api-gateway
+    5: auth-service
+    6: payment-service
+    7: payment-service
+    8: data-pipeline
+    9: cache-service
+    10: search-service
+  metric_interval_minutes: 5
+
+# ── Planted events ────────────────────────────────────────────────────────────
+# These drive the L3 invariants and override the generated background data.
+
+events:
+  - id: EVT-A
+    name: cascade_2025_03_15
+    description: >
+      Faulty api-gateway config deployed to DC-A at 14:22 UTC.
+      CPU spikes on hosts 1-4, causing 4 P0 incidents.
+      Rolled back at 15:52; all incidents resolved by 16:45.
+    datacenter: DC-A
+    service: api-gateway
+    affected_host_numbers: [1, 2, 3, 4]
+
+    deploy:
+      id: d-2025031501
+      timestamp: "2025-03-15T14:22:00"
+      commit_hash: "d4f8a2b1c9e3"
+      status: deployed
+
+    rollback_deploy:
+      id: d-2025031502
+      timestamp: "2025-03-15T15:52:00"
+      commit_hash: "a9c7b3d2f1e8"
+      status: deployed
+      rollback_of: d-2025031501
+
+    cpu_anomaly:
+      start: "2025-03-15T14:25:00"
+      peak:  "2025-03-15T14:40:00"
+      end:   "2025-03-15T16:00:00"
+      # values per host (host numbers 1-4), at peak timestamp
+      peak_pct_by_host: {1: 94.1, 2: 96.4, 3: 97.8, 4: 95.2}
+      avg_pct_window: 87.4          # L2-005: avg across all 4 hosts, 14:25-15:10
+      post_rollback_below_pct: 60   # L3-003: CPU back below 60% within 8 min of rollback
+
+    incidents:
+      - id: INC-4821
+        severity: P0
+        opened_at: "2025-03-15T14:28:00"
+        resolved_at: "2025-03-15T16:45:00"
+        host: dc-a-host-01
+      - id: INC-4822
+        severity: P0
+        opened_at: "2025-03-15T14:30:00"
+        resolved_at: "2025-03-15T16:45:00"
+        host: dc-a-host-02
+      - id: INC-4823
+        severity: P0
+        opened_at: "2025-03-15T14:33:00"
+        resolved_at: "2025-03-15T16:45:00"
+        host: dc-a-host-03
+      - id: INC-4824
+        severity: P0
+        opened_at: "2025-03-15T14:35:00"
+        resolved_at: "2025-03-15T16:45:00"
+        host: dc-a-host-04
+
+    oncall:
+      engineer: "Alice Johnson"
+      datacenter: DC-A
+      shift_start: "2025-03-15T08:00:00"
+      shift_end:   "2025-03-15T20:00:00"
+
+  - id: EVT-B
+    name: memory_creep_2024_09_03
+    description: >
+      Memory leak introduced in DC-B payment-service deploy at 09:15 UTC.
+      Memory climbs ~7.5%/hour on hosts 6-7 for 4 hours.
+      Two P1 incidents. Resolved via runbook RB-payment-002.
+    datacenter: DC-B
+    service: payment-service
+    affected_host_numbers: [6, 7]
+
+    deploy:
+      id: d-2024090301
+      timestamp: "2024-09-03T09:15:00"
+      commit_hash: "b7e2f4a1d8c6"
+      status: deployed
+
+    mem_anomaly:
+      start: "2024-09-03T09:15:00"
+      end:   "2024-09-03T13:30:00"
+      rate_pct_per_hour: 7.5        # L3-004: ~7.5%/hour monotonic increase
+      baseline_pct: 55.0
+      mean_pct_4h_window: 79.3      # L2-008: mean over 4h following deploy
+
+    incidents:
+      - id: INC-2891
+        severity: P1
+        opened_at: "2024-09-03T11:30:00"
+        resolved_at: "2024-09-03T13:30:00"
+        host: dc-b-host-06
+      - id: INC-2892
+        severity: P1
+        opened_at: "2024-09-03T12:45:00"
+        resolved_at: "2024-09-03T13:30:00"
+        host: dc-b-host-07
+      # L3-005: on-call was Bob Chen, not Alice Johnson
+    oncall:
+      engineer: "Bob Chen"
+      datacenter: DC-B
+      shift_start: "2024-09-03T08:00:00"
+      shift_end:   "2024-09-03T20:00:00"
+
+    runbook_applied: RB-payment-002   # L3-009: memory below 70% within 45 min
+
+  - id: EVT-C
+    name: night_storm_2024_11_20
+    description: >
+      Network throughput spike on DC-C data-pipeline caused by batch job
+      misconfiguration — no preceding deployment. 1 P0 at 03:07 UTC.
+    datacenter: DC-C
+    service: data-pipeline
+    affected_host_numbers: [8]
+    no_preceding_deploy_hours: 6    # L3-005 equivalent: no deploy in 6h before
+
+    net_anomaly:
+      start: "2024-11-20T03:00:00"
+      end:   "2024-11-20T04:30:00"
+      n_anomalous_5min_buckets: 8   # L2-009: 8 intervals above 95th percentile
+
+    incidents:
+      - id: INC-3456
+        severity: P0
+        opened_at: "2024-11-20T03:07:00"
+        resolved_at: "2024-11-20T05:10:00"
+        host: dc-c-host-08
+
+    oncall:
+      engineer: "Carlos Mendez"
+      datacenter: DC-C
+      shift_start: "2024-11-20T00:00:00"
+      shift_end:   "2024-11-20T08:00:00"
+
+  # Two additional deploy-caused incidents for L3-007
+  - id: EVT-D
+    name: deploy_incident_2024_06_12
+    datacenter: DC-B
+    service: payment-service
+    affected_host_numbers: [6]
+    deploy:
+      id: d-2024061203
+      timestamp: "2024-06-12T10:05:00"
+      commit_hash: "f3a9c1e7b2d5"
+      status: deployed
+    incidents:
+      - id: INC-1744
+        severity: P0
+        opened_at: "2024-06-12T10:12:00"
+        resolved_at: "2024-06-12T11:45:00"
+        host: dc-b-host-06
+
+  - id: EVT-E
+    name: deploy_incident_2025_01_08
+    datacenter: DC-A
+    service: search-service
+    affected_host_numbers: [10]
+    deploy:
+      id: d-2025010802
+      timestamp: "2025-01-08T09:30:00"
+      commit_hash: "c6b4d2a8f1e9"
+      status: deployed
+    incidents:
+      - id: INC-4201
+        severity: P0
+        opened_at: "2025-01-08T09:38:00"
+        resolved_at: "2025-01-08T10:55:00"
+        host: dc-a-host-10
+
+# ── Background rates (used by generate_data.py) ────────────────────────────────
+
+background:
+  incidents_per_day:
+    P0: 0.5    # per DC
+    P1: 2.0    # per DC
+    P2: 310.0  # per DC — high-volume automated alerts, gives ~500K rows
+  deployments_per_day: 2.8  # across all DCs/services combined
+  oncall_shift_hours: 8
+
+  # These background totals must satisfy the L2 invariants.
+  # generate_data.py adjusts the seed-driven background to hit exact counts.
+  p0_total_2024: 28               # L2-001 (includes planted events)
+  p0_dc_a_q1_2025: 7             # L1-004 (4 planted + 3 background)
+  p0_dc_b_h2_2024: 5             # L2-003
+  deployments_march_2025: 14      # L2-004
+  p1_within_30min_of_deploy: 12  # L2-007 (full dataset)
+  auth_service_p0_2024: 0        # L2-006 (enforced by zero generation)
+
+# ── Runbooks ──────────────────────────────────────────────────────────────────
+
+runbooks:
+  - id: RB-api-001
+    service: api-gateway
+    title: "API Gateway High CPU Recovery"
+    steps: 10
+  - id: RB-api-002
+    service: api-gateway
+    title: "API Gateway Config Rollback"
+    steps: 8
+  - id: RB-auth-001
+    service: auth-service
+    title: "Auth Service Restart Procedure"
+    steps: 6
+  - id: RB-payment-001
+    service: payment-service
+    title: "Payment Service Connection Pool Reset"
+    steps: 9
+  - id: RB-payment-002
+    service: payment-service
+    title: "Payment Service Memory Exhaustion Recovery"
+    steps: 12
+  - id: RB-pipeline-001
+    service: data-pipeline
+    title: "Data Pipeline Batch Job Termination"
+    steps: 7
+  - id: RB-pipeline-002
+    service: data-pipeline
+    title: "Network Throughput Storm Mitigation"
+    steps: 10
+  - id: RB-cache-001
+    service: cache-service
+    title: "Cache Eviction and Warmup"
+    steps: 5
+  - id: RB-search-001
+    service: search-service
+    title: "Search Index Rebuild"
+    steps: 8
+  - id: RB-general-001
+    service: all
+    title: "General Incident Escalation Procedure"
+    steps: 6
+
+# ── L1 invariants — single lookup facts ───────────────────────────────────────
+
+l1:
+  - id: L1-001
+    question: "Who was on-call for DC-A at 2025-03-15 14:30 UTC?"
+    answer: "Alice Johnson"
+    source_file: oncall_roster.csv
+    filter: {datacenter: DC-A, covers_timestamp: "2025-03-15T14:30:00"}
+
+  - id: L1-002
+    question: "What is the commit hash of the deployment to DC-A api-gateway at 2025-03-15 14:22 UTC?"
+    answer: "d4f8a2b1c9e3"
+    source_file: deployments.csv
+    filter: {deploy_id: d-2025031501}
+
+  - id: L1-003
+    question: "What was the first P0 incident ID opened during the 2025-03-15 DC-A outage?"
+    answer: "INC-4821"
+    source_file: incidents.csv
+    filter: {severity: P0, datacenter: DC-A, opened_after: "2025-03-15T14:27:00", opened_before: "2025-03-15T14:30:00"}
+
+  - id: L1-004
+    question: "How many P0 incidents occurred in DC-A in Q1 2025 (January–March)?"
+    answer: 7
+    source_file: incidents.csv
+    filter: {severity: P0, datacenter: DC-A, period: "2025-01-01/2025-03-31"}
+
+  - id: L1-005
+    question: "What was the CPU% on dc-a-host-02 at 2025-03-15 14:40 UTC?"
+    answer: 96.4
+    source_file: metrics_cpu.csv
+    filter: {host: dc-a-host-02, timestamp: "2025-03-15T14:40:00" }
+
+  - id: L1-006
+    question: "Which runbook handles DC-B payment-service memory exhaustion?"
+    answer: "RB-payment-002"
+    source_file: runbooks.csv
+    filter: {service: payment-service, title_contains: "Memory Exhaustion"}
+
+  - id: L1-007
+    question: "What is the commit hash of the rollback deployed to DC-A on 2025-03-15 15:52 UTC?"
+    answer: "a9c7b3d2f1e8"
+    source_file: deployments.csv
+    filter: {deploy_id: d-2025031502}
+
+  - id: L1-008
+    question: "Who was on-call for DC-C at 2024-11-20 03:00 UTC?"
+    answer: "Carlos Mendez"
+    source_file: oncall_roster.csv
+    filter: {datacenter: DC-C, covers_timestamp: "2024-11-20T03:00:00"}
+
+  - id: L1-009
+    question: "Which service had the most P0 incidents across all datacenters over the full 18-month period?"
+    answer: "payment-service"
+    source_file: incidents.csv
+    filter: {severity: P0, period: "2024-01-01/2025-06-30", aggregate: count_by_service}
+
+  - id: L1-010
+    question: "How many deployments were made to DC-B payment-service in September 2024?"
+    answer: 3
+    source_file: deployments.csv
+    filter: {datacenter: DC-B, service: payment-service, period: "2024-09-01/2024-09-30"}
+
+# ── L2 invariants — aggregation facts ─────────────────────────────────────────
+
+l2:
+  - id: L2-001
+    question: "What was the total number of P0 incidents across all datacenters in 2024?"
+    answer: 28
+    source_file: incidents.csv
+    filter: {severity: P0, period: "2024-01-01/2024-12-31", aggregate: count}
+
+  - id: L2-002
+    question: "What was the mean MTTR (in minutes) for P0 incidents in DC-A over the full dataset?"
+    answer: 94
+    source_file: incidents.csv
+    filter: {severity: P0, datacenter: DC-A, aggregate: mean_mttr}
+
+  - id: L2-003
+    question: "Which datacenter had the fewest P0 incidents in H2 2024, and how many?"
+    answer: "DC-B, 5"
+    source_file: incidents.csv
+    filter: {severity: P0, period: "2024-07-01/2024-12-31", aggregate: count_by_dc}
+
+  - id: L2-004
+    question: "How many deployments occurred across all datacenters and services in March 2025?"
+    answer: 14
+    source_file: deployments.csv
+    filter: {period: "2025-03-01/2025-03-31", aggregate: count}
+
+  - id: L2-005
+    question: "What was the average CPU% across all DC-A api-gateway hosts during 2025-03-15 14:25–15:10 UTC?"
+    answer: 87.4
+    source_files: [metrics_cpu.csv]
+    filter: {datacenter: DC-A, service: api-gateway, window: "2025-03-15T14:25/2025-03-15T15:10", aggregate: mean_cpu}
+
+  - id: L2-006
+    question: "How many P0 incidents did auth-service experience in all of 2024?"
+    answer: 0
+    source_file: incidents.csv
+    filter: {severity: P0, service: auth-service, period: "2024-01-01/2024-12-31", aggregate: count}
+
+  - id: L2-007
+    question: "How many P1 incidents were opened within 30 minutes of any deployment, across the full dataset?"
+    answer: 12
+    source_files: [incidents.csv, deployments.csv]
+    note: "Requires joining on datacenter+service and comparing timestamps."
+
+  - id: L2-008
+    question: "What was the mean memory% on DC-B payment-service hosts in the 4 hours following deploy d-2024090301?"
+    answer: 79.3
+    source_files: [metrics_mem.csv, deployments.csv]
+    filter: {host_pattern: "dc-b-host-0[67]", window_start: "2024-09-03T09:15", window_hours: 4}
+
+  - id: L2-009
+    question: "How many 5-minute intervals showed network throughput above the 95th percentile on DC-C data-pipeline hosts in November 2024?"
+    answer: 8
+    source_file: metrics_net.csv
+    filter: {datacenter: DC-C, service: data-pipeline, period: "2024-11-01/2024-11-30"}
+    note: "95th pct computed over the full November window for those hosts."
+
+  - id: L2-010
+    question: "How many incidents (any severity) occurred in the 24 hours before deploy d-2025031501?"
+    answer: 0
+    source_files: [incidents.csv, deployments.csv]
+    filter: {window_before_deploy: d-2025031501, hours: 24}
+
+# ── L3 invariants — causal / temporal facts ───────────────────────────────────
+
+l3:
+  - id: L3-001
+    question: >
+      Did deploy d-2025031501 on 2025-03-15 cause P0 incidents in DC-A?
+      How many, within what timeframe, and what are their IDs?
+    answer: >
+      Yes. Deploy d-2025031501 (2025-03-15 14:22 UTC) directly caused 4 P0 incidents
+      (INC-4821, INC-4822, INC-4823, INC-4824) in DC-A api-gateway,
+      all opened within 13 minutes of the deployment.
+    source_files: [deployments.csv, incidents.csv]
+
+  - id: L3-002
+    question: >
+      Is there a temporal correlation between the CPU spike on DC-A api-gateway hosts
+      and the P0 incident cluster on 2025-03-15?
+    answer: >
+      Yes. CPU on dc-a-host-01 through dc-a-host-04 began rising at 14:25 and peaked at
+      14:38 (avg 87.4%). All 4 P0 incidents were opened between 14:28 and 14:35 — during
+      the rising phase. Pearson correlation between avg CPU% and active P0 count in
+      5-min buckets during 14:25–15:10 is > 0.85.
+    source_files: [metrics_cpu.csv, incidents.csv]
+
+  - id: L3-003
+    question: >
+      Did the rollback deploy d-2025031502 at 15:52 UTC cause CPU to recover on
+      DC-A api-gateway hosts?
+    answer: >
+      Yes. Within 8 minutes of the rollback deploy at 15:52, CPU on all 4 affected
+      DC-A api-gateway hosts returned below 60%.
+    source_files: [deployments.csv, metrics_cpu.csv]
+
+  - id: L3-004
+    question: >
+      How did deploy d-2024090301 affect DC-B payment-service memory over the
+      4 hours following deployment?
+    answer: >
+      Memory on dc-b-host-06 and dc-b-host-07 increased monotonically at approximately
+      7.5%/hour from a 55% baseline, reaching ~85% after 4 hours. Mean memory over
+      the 4-hour window was 79.3%.
+    source_files: [deployments.csv, metrics_mem.csv]
+
+  - id: L3-005
+    question: >
+      Was the DC-C data-pipeline network storm on 2024-11-20 preceded by a deployment?
+    answer: >
+      No. There were no deployments to DC-C data-pipeline in the 6 hours preceding
+      the network storm that started at 03:00 UTC. The cause was a batch job
+      misconfiguration, not a code deploy.
+    source_files: [deployments.csv, metrics_net.csv, incidents.csv]
+
+  - id: L3-006
+    question: >
+      Who handled the 2025-03-15 P0 incidents in DC-A, and when were they all resolved?
+    answer: >
+      Alice Johnson (on-call for DC-A, shift 08:00–20:00 UTC) was assigned all 4 P0
+      incidents (INC-4821 through INC-4824). All were resolved at 16:45 UTC, giving
+      an MTTR range of 130–137 minutes.
+    source_files: [incidents.csv, oncall_roster.csv]
+
+  - id: L3-007
+    question: >
+      Across the full 18-month dataset, which deployments caused a P0 incident within
+      15 minutes of being deployed?
+    answer: >
+      Three deployments: d-2025031501 (2025-03-15 14:22, P0 at 14:28),
+      d-2024061203 (2024-06-12 10:05, P0 at 10:12),
+      d-2025010802 (2025-01-08 09:30, P0 at 09:38).
+    source_files: [deployments.csv, incidents.csv]
+
+  - id: L3-008
+    question: >
+      Did cache-service experience any incidents that were temporally correlated
+      with deployments in DC-A over the 18-month period?
+    answer: >
+      No. cache-service in DC-A had no incidents opened within 30 minutes of any
+      deployment throughout the full dataset.
+    source_files: [deployments.csv, incidents.csv]
+
+  - id: L3-009
+    question: >
+      After runbook RB-payment-002 was applied to the 2024-09-03 DC-B payment-service
+      incidents, how quickly did memory recover?
+    answer: >
+      Memory on the affected hosts (dc-b-host-06, dc-b-host-07) returned below 70%
+      within 45 minutes of the incident being resolved at 13:30 UTC via RB-payment-002.
+    source_files: [incidents.csv, metrics_mem.csv, runbooks.csv]
+
+  - id: L3-010
+    question: >
+      On 2025-03-15, did all four DC-A api-gateway hosts show elevated CPU simultaneously,
+      or was it staggered?
+    answer: >
+      Simultaneous. All four hosts (dc-a-host-01 through dc-a-host-04) exceeded 80% CPU
+      by 14:30 UTC — within 5 minutes of the first spike at 14:25 — confirming a
+      shared-cause outage rather than a cascading failure.
+    source_files: [metrics_cpu.csv]
